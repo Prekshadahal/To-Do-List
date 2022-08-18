@@ -6,7 +6,7 @@
 //
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     private let table: UITableView = {
         let table = UITableView()
@@ -22,7 +22,9 @@ class ViewController: UIViewController, UITableViewDataSource {
         title = "To Do Lists"
         view.addSubview(table)
         table.dataSource = self // Telling the system that data will be provided manually
+        table.delegate = self
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd)) //Adds the button in the top right.
+        self.table.register(UINib(nibName: "TableViewCell", bundle: nil), forCellReuseIdentifier: "cell")
     }
     
     // To add alerts in the + symbol
@@ -32,8 +34,11 @@ class ViewController: UIViewController, UITableViewDataSource {
         alert.addTextField { field in
             field.placeholder = "Enter the next item that needs to be done."
         }
-        
-        // Creating the alert animation.
+        .alert("Title", isPresented: $presentAlert, actions: {
+            title("TextField", text: .constant("Value"))
+        }, message:{
+            description("TextField", text: .constant("Value"))
+        })
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { [weak self] (_) in
             if let field = alert.textFields?.first {
@@ -62,11 +67,16 @@ class ViewController: UIViewController, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = items[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! TableViewCell
+        
+        cell.cellTitle.text = self.items[indexPath.row]
+        
+        cell.cellDescription.text = self.items[indexPath.row]
+            
         return cell
     }
     
+    //Adding the feature to delete a row of items
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
             
             if editingStyle == .delete  {
